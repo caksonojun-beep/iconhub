@@ -4,19 +4,39 @@ import { Footer } from '@/components/layout/footer';
 import { Search, Filter, Grid, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { createClient } from '@supabase/supabase-js';
 
-export default function IconsPage() {
-  // Mock data - will be replaced with Supabase data
-  const icons = [
-    { id: '1', name: 'home', slug: 'home', previewUrl: '/icons/home.svg', downloads: 1234, style: 'outline' },
-    { id: '2', name: 'settings', slug: 'settings', previewUrl: '/icons/settings.svg', downloads: 987, style: 'outline' },
-    { id: '3', name: 'user', slug: 'user', previewUrl: '/icons/user.svg', downloads: 876, style: 'outline' },
-    { id: '4', name: 'mail', slug: 'mail', previewUrl: '/icons/mail.svg', downloads: 765, style: 'outline' },
-    { id: '5', name: 'search', slug: 'search', previewUrl: '/icons/search.svg', downloads: 654, style: 'outline' },
-    { id: '6', name: 'heart', slug: 'heart', previewUrl: '/icons/heart.svg', downloads: 543, style: 'filled' },
-    { id: '7', name: 'star', slug: 'star', previewUrl: '/icons/star.svg', downloads: 432, style: 'filled' },
-    { id: '8', name: 'download', slug: 'download', previewUrl: '/icons/download.svg', downloads: 321, style: 'outline' },
-  ];
+// Server-side Supabase client
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  );
+}
+
+async function getIcons() {
+  const supabase = getSupabase();
+  const { data: icons } = await supabase
+    .from('icons')
+    .select('*')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(20);
+  return icons || [];
+}
+
+async function getTotalCount() {
+  const supabase = getSupabase();
+  const { count } = await supabase
+    .from('icons')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+  return count || 0;
+}
+
+export default async function IconsPage() {
+  const icons = await getIcons();
+  const totalCount = await getTotalCount();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -84,8 +104,8 @@ export default function IconsPage() {
         <div className="container px-4 mx-auto py-8">
           <div className="flex justify-between items-center mb-6">
             <p className="text-muted-foreground">
-              Showing <span className="font-medium text-foreground">1-20</span> of{' '}
-              <span className="font-medium text-foreground">5,000+</span> icons
+              Showing <span className="font-medium text-foreground">1-{icons.length}</span> of{' '}
+              <span className="font-medium text-foreground">{totalCount}+</span> icons
             </p>
             <select className="px-3 py-2 border rounded-md bg-background">
               <option>Most Popular</option>
@@ -95,21 +115,18 @@ export default function IconsPage() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {icons.map((icon) => (
+            {icons.map((icon: any) => (
               <Link
                 key={icon.id}
                 href={`/icons/${icon.slug}`}
                 className="group relative aspect-square border rounded-xl hover:border-blue-500 hover:shadow-lg transition-all bg-white dark:bg-slate-900 p-4 flex items-center justify-center"
               >
-                <div className="w-16 h-16 flex items-center justify-center">
-                  {/* Placeholder icon */}
-                  <div className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center text-slate-500">
-                    <span className="text-xs">{icon.name}</span>
-                  </div>
-                </div>
-                <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="w-16 h-16 flex items-center justify-center text-slate-700 dark:text-slate-300"
+                     dangerouslySetInnerHTML={{ __html: icon.svg_content || '' }}
+                />
+                <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-slate-900/90 rounded px-2 py-1">
                   <span className="text-xs font-medium truncate">{icon.name}</span>
-                  <span className="text-xs text-muted-foreground">{icon.downloads}</span>
+                  <span className="text-xs text-muted-foreground">{icon.download_count || 0}</span>
                 </div>
               </Link>
             ))}
