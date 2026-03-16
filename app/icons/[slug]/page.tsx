@@ -108,16 +108,19 @@ export default async function IconDetailPage({ params }: { params: { slug: strin
               <div className="space-y-3">
                 <a
                   href={`/api/download/${icon.slug}?format=svg`}
+                  target="_blank"
                   className="flex items-center justify-center w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium"
                 >
                   <Download className="w-5 h-5 mr-2" />
                   Download SVG
                 </a>
                 <a
-                  href={`/api/download/${icon.slug}?format=png`}
+                  href={`/api/download/${icon.slug}?format=svg`}
+                  target="_blank"
                   className="flex items-center justify-center w-full h-12 border rounded-md font-medium hover:bg-accent"
                 >
-                  Download PNG (Coming Soon)
+                  <Download className="w-5 h-5 mr-2" />
+                  Download PNG (Soon)
                 </a>
               </div>
 
