@@ -21,7 +21,7 @@ async function getIcons() {
     .select('*')
     .eq('status', 'active')
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(100);
   return icons || [];
 }
 
